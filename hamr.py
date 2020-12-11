@@ -1,6 +1,6 @@
 #!/usr/local/bin/python
 #
-#  Copyright (c) 2013-2018 University of Pennsylvania
+#  Copyright (c) 2013-2016 University of Pennsylvania
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a
 #  copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,7 @@ import shutil
 import datetime
 import time
 import re
+import os.path
 from distutils import spawn
 
 RSCRIPT=spawn.find_executable("Rscript")
@@ -46,6 +47,7 @@ PYTHON=spawn.find_executable("python")
 if PYTHON is None:
    print "***ERROR: python is not found"
    sys.exit("Please install / python or make sure it is in the PATH")
+
 
 SAMTOOLS=spawn.find_executable("samtools")
 if SAMTOOLS is None:
@@ -79,6 +81,7 @@ parser.add_argument('--type_plot','-tp',action='store_true',help='Use this tag t
 parser.add_argument('--retain_tempfiles','-r',action='store_true',help='Use this tag to keep HAMR temp files')
 
 args=parser.parse_args()
+
 
 #Raise error if hypothesis has invalid value
 if args.hypothesis != 'H1' and args.hypothesis != 'H4':
@@ -122,12 +125,10 @@ rTag=tmpDIR + '/' + rightnow + '.HAMR.' + args.out_prefix #date included in file
 ###################################################################################################################################
 
 ##run HAMR
-
-#Input BAM steps
-
 run_mode = "genome-wide"
 if (args.target_bed != 'unspecified'):
    run_mode = 'targeted'
+
 
 inputBAM=args.bam
 print 'Analyzing %s (%s)' %(inputBAM, run_mode)
@@ -153,8 +154,6 @@ if (args.target_bed != 'unspecified'):
         bamForAnalysis=bam_constrained
 
 print "BAM for HAMR analysis: " + bamForAnalysis
-
-# Pileup mismatches
 
 print 'Running RNApileup ' + rnapileup
 rawpileup=rTag+'.pileup.raw'
@@ -242,10 +241,13 @@ else:
 print "converting output to bed format..."
 bed_file=output_folder+'/'+args.out_prefix+".mods.bed"
 outfn=open(bed_file,'w')
-subprocess.check_call(['awk', 'FNR > 1 {print $1"\t"$2"\t"(1+$2)"\t"$1";"$2"\t"$16"\t"$3}', prediction_file],stdout=outfn)
+# convert 1-based to 0-based
+subprocess.check_call(['awk', 'FNR > 1 {print $1"\t"($2-1)"\t"$2"\t"$1";"$2"\t"$16"\t"$3}', prediction_file],stdout=outfn)
 outfn.close()
 
+
 print "calculating number of HAMR-accessible bases..."
+
 if not args.empirical_hamr_acc_threshold:
     # tablulate number of bases at or above min_cov
     threshold = int(args.min_cov)

@@ -11,8 +11,10 @@ end_mismatch = dict((letter,int(0)) for letter in alphabet)
 nonend_mismatch = dict((letter,int(0)) for letter in alphabet)
 
 #######
-
-inFile = open(sys.argv[1],'r')
+import codecs
+inFile = codecs.open(sys.argv[1], 'r', encoding='utf-8',
+                 errors='ignore') 
+#inFile = open(sys.argv[1],'r')
 lineNumber = 0
 for line in inFile:
 	lineNumber += 1
@@ -35,8 +37,7 @@ inFile.close()
 
 #######
 
-print "nt\tFirst\tMiddle\tLast\tPercentFirst\tPercentLast"
+print("nt\tFirst\tMiddle\tLast\tPercentFirst\tPercentLast")
 for letter in alphabet:
 	total = float(start_mismatch[letter]+nonend_mismatch[letter]+end_mismatch[letter])
-	print str(letter)+'\t'+str(start_mismatch[letter])+'\t'+str(nonend_mismatch[letter])+'\t'+str(end_mismatch[letter])+'\t'+str(start_mismatch[letter]/total*100)+'\t'+str(end_mismatch[letter]/total*100)
-
+	print(str(letter)+'\t'+str(start_mismatch[letter])+'\t'+str(nonend_mismatch[letter])+'\t'+str(end_mismatch[letter])+'\t'+str(start_mismatch[letter]/total*100)+'\t'+str(end_mismatch[letter]/total*100))
